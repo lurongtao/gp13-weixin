@@ -14,10 +14,12 @@ app.use(bodyParser())
 
 const Router = require('koa-router')
 const home = require('./router/weixin')
+const jssdk = require('./router/jssdk')
 
 // 装载所有子路由
 let router = new Router()
 router.use('/', home.routes(), home.allowedMethods())
+router.use('/jssdk', jssdk.routes(), jssdk.allowedMethods())
 
 // 加载路由中间件
 app.use(router.routes()).use(router.allowedMethods())
