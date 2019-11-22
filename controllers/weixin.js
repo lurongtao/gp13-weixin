@@ -45,6 +45,6 @@ exports.autoreply = async (ctx) => {
     ToUserName: FromUserName,
     FromUserName: ToUserName,
     CreateTime: new Date().getTime(),
-    Content: '<a href="https://www.baidu.com">百度</a>'
+    Content: '<a href="https://walter666.cn">美食平台</a>'
   })
 }
