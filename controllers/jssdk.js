@@ -1,18 +1,29 @@
 const querystring = require('querystring')
 const crypto = require('crypto')
-const { appId, appsecret, url } = require('../config/config')
-const { get } = require('../utils/http')
-const { genTimestamp, nonceStr } = require('../utils/tools')
+const { query } = require('../utils/db')
+const { url } = require('../config/config')
+const { appId} = require('../config/config')
+const { genTimestamp, nonceStr, getTicket } = require('../utils/tools')
 
 exports.jssdk = async (ctx, next) => {
-  // 1、获取access_token
-  let access_token_url = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${appId}&secret=${appsecret}`
-  let { access_token } = await get(access_token_url)
 
-  // 2、获取jsapi_ticket
-  let jsapi_ticket_url = `https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=${access_token}&type=jsapi`
-  let { ticket } = await get(jsapi_ticket_url)
-  
+  let sql = 'select * from ticket'
+  let result = await query(sql)
+  let ticket = ''
+  if (result.length > 0) {
+    if (new Date().getTime() - parseInt(result[0]['create_time'], 10) > 7000000) {
+      ticket = await getTicket()
+      let sql = 'update ticket set ticket = ?, create_time = ? where id = ?'
+      let values = [ticket, new Date().getTime(), result[0]['id']]
+      await query(sql, values)
+    }
+  } else {
+    ticket = await getTicket()
+    let sql = 'insert into ticket(ticket, create_time) values(?, ?)'
+    let values = [ticket, new Date().getTime()]
+    await query(sql, values)
+  }
+
   // 3、生成string1
   let obj = {
     noncestr: nonceStr(),
@@ -31,7 +42,7 @@ exports.jssdk = async (ctx, next) => {
   })
   
   // 4、生成signature
-  let signature =  crypto.createHash('sha1').update(string1).digest('hex')
+  let signature = crypto.createHash('sha1').update(string1).digest('hex')
 
   await ctx.render('sign', {
     appId,

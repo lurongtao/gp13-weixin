@@ -15,15 +15,17 @@ app.use(bodyParser())
 const Router = require('koa-router')
 const home = require('./router/weixin')
 const jssdk = require('./router/jssdk')
+const api = require('./router/api')
 
 // 装载所有子路由
 let router = new Router()
 router.use('/', home.routes(), home.allowedMethods())
 router.use('/jssdk', jssdk.routes(), jssdk.allowedMethods())
+router.use('/api', api.routes(), api.allowedMethods())
 
 // 加载路由中间件
 app.use(router.routes()).use(router.allowedMethods())
 
-app.listen(3333, () => {
-  console.log('[demo] route-use-middleware is starting at port 3333')
+app.listen(7788, () => {
+  console.log('[demo] route-use-middleware is starting at port 7788')
 })
